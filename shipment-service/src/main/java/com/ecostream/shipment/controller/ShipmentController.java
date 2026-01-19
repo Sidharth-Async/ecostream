@@ -2,6 +2,7 @@ package com.ecostream.shipment.controller;
 
 import com.ecostream.common.dto.*;
 import com.ecostream.shipment.service.ShipmentService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -12,9 +13,10 @@ import java.util.UUID;
 public class ShipmentController {
 
     private final com.ecostream.shipment.service.ShipmentService service;
-
-    public ShipmentController(com.ecostream.shipment.service.ShipmentService service) {
+    private final ShipmentService shipmentService;
+    public ShipmentController(com.ecostream.shipment.service.ShipmentService service, ShipmentService shipmentService) {
         this.service = service;
+        this.shipmentService = shipmentService;
     }
 
     @org.springframework.web.bind.annotation.PostMapping
@@ -46,5 +48,12 @@ public class ShipmentController {
         return "Shipment deleted successfully.";
     }
 
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ShipmentDTO> updateStatus(
+            @PathVariable("id") String id,
+            @RequestParam("status") ShipmentStatus status) {
 
+        ShipmentDTO updatedShipment = shipmentService.updateShipmentStatus(id, status);
+        return ResponseEntity.ok(updatedShipment);
+    }
 }

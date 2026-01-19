@@ -6,6 +6,7 @@ import com.ecostream.common.dto.ShipmentStatus;
 import com.ecostream.shipment.model.ShipmentEntity;
 import com.ecostream.shipment.repository.ShipmentRepository;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,11 +17,13 @@ public class ShipmentService {
 
     private final ShipmentRepository shipmentRepository;
     private final StringRedisTemplate redisTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
 
-    public ShipmentService(ShipmentRepository shipmentRepository, StringRedisTemplate redisTemplate) {
+    public ShipmentService(ShipmentRepository shipmentRepository, StringRedisTemplate redisTemplate, KafkaTemplate<String, String> kafkaTemplate) {
         this.shipmentRepository = shipmentRepository;
         this.redisTemplate = redisTemplate;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     public ShipmentDTO createShipment(ShipmentDTO initialData) {
@@ -90,4 +93,33 @@ public class ShipmentService {
                 .orElseThrow(() -> new RuntimeException("shipment does not exists"));
         shipmentRepository.delete(foundEntity);
     }
+
+    public ShipmentDTO updateShipmentStatus(String  shipmentId, ShipmentStatus status) {
+        // finds the shipment id:
+        ShipmentEntity entity = shipmentRepository.findById(shipmentId)
+                .orElseThrow(() -> new RuntimeException("shipment does not exists"));
+
+        entity.setStatus(status);
+        ShipmentEntity saved = shipmentRepository.save(entity);
+
+        GeoLocationDTO locationObj = null;
+        if (saved.getEstimatedArrival().isBefore(LocalDateTime.now())) {
+            locationObj = new GeoLocationDTO(saved.getCurrentLatitude(), saved.getCurrentLongitude());
+        }
+
+        ShipmentDTO dto = new ShipmentDTO(
+                saved.getId(),
+                saved.getOrderId(),
+                saved.getStatus(),
+                locationObj,
+                null,
+                saved.getEstimatedArrival()
+        );
+        if(status == ShipmentStatus.DELIVERED){
+            kafkaTemplate.send("shipment-events", dto.toString());
+            System.out.println("   [Kafka] Sent DELIVERED event for " + shipmentId);
+        }
+        return dto;
+    }
+
 }
