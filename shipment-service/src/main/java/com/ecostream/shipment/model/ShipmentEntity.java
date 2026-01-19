@@ -16,15 +16,20 @@ public class ShipmentEntity {
     @Enumerated(EnumType.STRING)
     private ShipmentStatus status;
 
+    private Double currentLatitude;
+    private Double currentLongitude;
+    private LocalDateTime lastUpdated;
     private LocalDateTime estimatedArrival;
 
     public ShipmentEntity() {}
-
-    public ShipmentEntity(String id, String orderId, ShipmentStatus status,  LocalDateTime estimatedArrival) {
+    public ShipmentEntity(String id, String orderId, ShipmentStatus status,  LocalDateTime estimatedArrival, Double currentLatitude, Double currentLongitude, LocalDateTime lastUpdated) {
         this.id = id;
         this.orderId = orderId;
         this.status = status;
         this.estimatedArrival = estimatedArrival;
+        this.currentLatitude = currentLatitude;
+        this.currentLongitude = currentLongitude;
+        this.lastUpdated = lastUpdated;
     }
 
     public String getId()
@@ -50,6 +55,30 @@ public class ShipmentEntity {
 
     public void setStatus(ShipmentStatus status) {
         this.status = status;
+    }
+
+    public Double getCurrentLatitude() {
+        return currentLatitude;
+    }
+
+    public void setCurrentLatitude(Double currentLatitude) {
+        this.currentLatitude = currentLatitude;
+    }
+
+    public Double getCurrentLongitude() {
+        return currentLongitude;
+    }
+
+    public void setCurrentLongitude(Double currentLongitude) {
+        this.currentLongitude = currentLongitude;
+    }
+
+    public LocalDateTime getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated(LocalDateTime lastUpdated) {
+        this.lastUpdated = lastUpdated;
     }
 
     public LocalDateTime getEstimatedArrival() {

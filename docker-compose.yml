@@ -1,10 +1,9 @@
 version: '3.8'
-
 services:
-  # --- 1. Database (Postgres) ---
   postgres:
     image: postgres:16-alpine
     container_name: ecostream-db
+    restart: always  # Auto-restarts Postgres if it crashes
     environment:
       - POSTGRES_USER=eco_user
       - POSTGRES_PASSWORD=eco_pass
@@ -13,30 +12,25 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
 
-  # --- 2. Cache (Redis) ---
-  redis:
-    image: redis:7-alpine
-    container_name: ecostream-redis
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-
-  # --- 3. Kafka Manager (Zookeeper) ---
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: ecostream-zookeeper
+    restart: always
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
 
-  # --- 4. Messaging (Kafka) ---
+  redis:
+    image: redis:7.2-alpine
+    container_name: ecostream-redis
+    restart: always
+    ports:
+           - "6379:6379"
+
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: ecostream-kafka
+    restart: always
     depends_on:
       - zookeeper
     ports:
@@ -44,10 +38,11 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      # IMPORTANT: This allows your Java app on 'localhost' to connect
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      # Force Kafka to use less memory so it doesn't crash
+      KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
 
 volumes:
   postgres_data:
