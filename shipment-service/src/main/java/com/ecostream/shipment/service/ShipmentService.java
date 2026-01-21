@@ -17,10 +17,10 @@ public class ShipmentService {
 
     private final ShipmentRepository shipmentRepository;
     private final StringRedisTemplate redisTemplate;
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
 
-    public ShipmentService(ShipmentRepository shipmentRepository, StringRedisTemplate redisTemplate, KafkaTemplate<String, String> kafkaTemplate) {
+    public ShipmentService(ShipmentRepository shipmentRepository, StringRedisTemplate redisTemplate, KafkaTemplate<String, Object> kafkaTemplate) {
         this.shipmentRepository = shipmentRepository;
         this.redisTemplate = redisTemplate;
         this.kafkaTemplate = kafkaTemplate;
@@ -115,10 +115,8 @@ public class ShipmentService {
                 null,
                 saved.getEstimatedArrival()
         );
-        if(status == ShipmentStatus.DELIVERED){
-            kafkaTemplate.send("shipment-events", dto.toString());
-            System.out.println("   [Kafka] Sent DELIVERED event for " + shipmentId);
-        }
+        kafkaTemplate.send("shipment-events", dto);
+        System.out.println("   >> [Kafka] Sent event: " + status + " for " + shipmentId);
         return dto;
     }
 
