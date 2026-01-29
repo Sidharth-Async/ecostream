@@ -18,8 +18,6 @@ public class DeliveredHandler implements NotificationHandler {
     }
     @Override
     public void handle(ShipmentDTO shipment){
-        System.out.println("✅ [Strategy] Handling DELIVERY Event for Order: " + shipment.orderId());
-
         emailService.sendDeliveryNotification("sidharthyadav134134@gmail.com", shipment.orderId());
     }
 

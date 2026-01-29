@@ -10,6 +10,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/shipments")
+@CrossOrigin(origins = "http://localhost:5173")
 public class ShipmentController {
 
     private final com.ecostream.shipment.service.ShipmentService service;

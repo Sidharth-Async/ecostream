@@ -1,32 +1,48 @@
 version: '3.8'
+
 services:
+  # 1. DATABASE (PostgreSQL)
   postgres:
     image: postgres:16-alpine
     container_name: ecostream-db
-    restart: always  # Auto-restarts Postgres if it crashes
+    restart: always
     environment:
-      - POSTGRES_USER=eco_user
-      - POSTGRES_PASSWORD=eco_pass
-      - POSTGRES_DB=shipment_db
+      POSTGRES_USER: eco_user
+      POSTGRES_PASSWORD: eco_pass
+      POSTGRES_DB: shipment_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - eco-network
 
+  # 2. PGADMIN (Database UI - Access at localhost:5050)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: ecostream-pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - eco-network
+
+  # 3. ZOOKEEPER (Required for Kafka)
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: ecostream-zookeeper
     restart: always
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - eco-network
 
-  redis:
-    image: redis:7.2-alpine
-    container_name: ecostream-redis
-    restart: always
-    ports:
-           - "6379:6379"
-
+  # 4. KAFKA (Messaging System)
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: ecostream-kafka
@@ -41,8 +57,25 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      # Force Kafka to use less memory so it doesn't crash
       KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
+    networks:
+      - eco-network
 
+  # 5. REDIS (Caching)
+  redis:
+    image: redis:7.2-alpine
+    container_name: ecostream-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - eco-network
+
+# 6. PERSISTENT STORAGE
 volumes:
   postgres_data:
+
+# 7. NETWORK DEFINITION (Fixes your error!)
+networks:
+  eco-network:
+    driver: bridge

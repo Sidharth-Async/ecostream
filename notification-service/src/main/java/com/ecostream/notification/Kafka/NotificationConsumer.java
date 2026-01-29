@@ -17,15 +17,11 @@ public class NotificationConsumer {
 
     private final Map<ShipmentStatus, NotificationHandler> handlerMap;
 
-    @Autowired // Explicitly tells Spring to use this constructor
+    @Autowired
     public NotificationConsumer(List<NotificationHandler> handlers) {
-        System.out.println("--------------------------------------------------");
-        System.out.println("🏗️  NotificationConsumer Initializing...");
-        System.out.println("📊  Strategies Found: " + handlers.size());
 
-        // Debug: See exactly what strategies Spring found
         handlers.forEach(h -> System.out.println("   -> Loaded Strategy: " + h.getClass().getSimpleName()));
-        System.out.println("--------------------------------------------------");
+
 
         this.handlerMap = handlers.stream()
                 .collect(Collectors.toMap(NotificationHandler::getSupportStatus, Function.identity()));
@@ -34,9 +30,6 @@ public class NotificationConsumer {
     @KafkaListener(topics = "shipment-events", groupId = "notification-group-FINAL-V2")
     public void receiveMessage(ShipmentDTO message) {
         if (message == null) return;
-
-        System.out.println(">> 📨 Received Event: " + message.status());
-
         NotificationHandler handler = handlerMap.get(message.status());
 
         if (handler != null) {
