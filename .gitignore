@@ -4,6 +4,13 @@ target/
 !**/src/test/**/target/
 .kotlin
 
+# Ignore all application.properties in any folder
+**/application.properties
+**/application.yml
+
+# Optional: Ignore environment files
+.env
+
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml

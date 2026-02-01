@@ -1,8 +1,10 @@
 package com.ecostream.common.dto;
 
+
 import java.time.LocalDateTime;
 
 public record LocationUpdate(
+        String status,
         String shipmentId,
         double latitude,
         double longitude,

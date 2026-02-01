@@ -10,7 +10,9 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ShipmentService {
@@ -24,6 +26,13 @@ public class ShipmentService {
         this.shipmentRepository = shipmentRepository;
         this.redisTemplate = redisTemplate;
         this.kafkaTemplate = kafkaTemplate;
+    }
+
+    public List<ShipmentDTO> getAllShipments() {
+        return shipmentRepository.findAll()
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
     public ShipmentDTO createShipment(ShipmentDTO initialData) {
@@ -118,6 +127,17 @@ public class ShipmentService {
         kafkaTemplate.send("shipment-events", dto);
         System.out.println("   >> [Kafka] Sent event: " + status + " for " + shipmentId);
         return dto;
+    }
+
+    private ShipmentDTO mapToDTO(ShipmentEntity entity) {
+        return new ShipmentDTO(
+                entity.getId(),
+                entity.getOrderId(),
+                entity.getStatus(),
+                null,
+                null,
+                entity.getEstimatedArrival() !=null ? entity.getEstimatedArrival() : LocalDateTime.now()
+        );
     }
 
 }

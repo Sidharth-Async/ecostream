@@ -1,23 +1,29 @@
 package com.ecostream.shipment.controller;
 
 import com.ecostream.common.dto.*;
+import com.ecostream.shipment.model.ShipmentEntity;
+import com.ecostream.shipment.repository.ShipmentRepository;
 import com.ecostream.shipment.service.ShipmentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/shipments")
 @CrossOrigin(origins = "http://localhost:5173")
 public class ShipmentController {
 
+    private final ShipmentRepository repository;
     private final com.ecostream.shipment.service.ShipmentService service;
     private final ShipmentService shipmentService;
-    public ShipmentController(com.ecostream.shipment.service.ShipmentService service, ShipmentService shipmentService) {
+    public ShipmentController(com.ecostream.shipment.service.ShipmentService service, ShipmentService shipmentService,  ShipmentRepository repository) {
         this.service = service;
         this.shipmentService = shipmentService;
+        this.repository = repository;
     }
 
     @org.springframework.web.bind.annotation.PostMapping
@@ -36,6 +42,10 @@ public class ShipmentController {
                 new AddressDTO("5th Avenue", "New York", "10001", "USA"),
                 LocalDateTime.now().plusDays(2)
         );
+    }
+    @GetMapping
+    public List<ShipmentDTO> getAllShipments() {
+        return service.getAllShipments();
     }
 
     @GetMapping("/{id}")
